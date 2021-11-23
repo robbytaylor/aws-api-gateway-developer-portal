@@ -64,6 +64,18 @@ exports.handler = async (event, context) => {
           Timeout: 1
         }).promise()
 
+        let state = createResult.State;
+  
+        while (state === 'Pending') {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+
+          const getResult = await lambdaEdge.getFunction({
+            FunctionName: createResult.FunctionName,
+          });
+
+          state = getResult.State;
+        }
+
         console.log('Publishing initial version')
         versionResult = await lambdaEdge.publishVersion({
           FunctionName: createResult.FunctionArn
